@@ -1,97 +1,173 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Briefcase, Calendar, Award, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Briefcase, Calendar, CheckCircle2, ChevronDown, ChevronUp, Award } from 'lucide-react';
 import { experiences } from '../data/experience';
+
+const EXP_COLORS = [
+    { accent: '#6366f1', glow: 'rgba(99,102,241,0.15)', badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+    { accent: '#8b5cf6', glow: 'rgba(139,92,246,0.15)', badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
+];
+
+const ExperienceCard = ({ exp, index }) => {
+    const [expanded, setExpanded] = useState(index === 0);
+    const color = EXP_COLORS[index % EXP_COLORS.length];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: index * 0.15 }}
+            className="relative"
+        >
+            {/* Vertical connector line */}
+            {index < experiences.length - 1 && (
+                <div className="absolute left-8 top-full w-px h-8 mt-1"
+                    style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.3), transparent)' }} />
+            )}
+
+            <div
+                className="glass-card rounded-3xl border border-slate-800 overflow-hidden transition-all duration-500 hover:border-indigo-500/20 group"
+                style={{ boxShadow: expanded ? `0 0 40px ${color.glow}` : 'none' }}
+            >
+                {/* Top accent line */}
+                <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${color.accent}, transparent)` }} />
+
+                <div className="p-6 md:p-8">
+                    {/* Header row */}
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 rounded-2xl flex-shrink-0"
+                                style={{ background: `${color.accent}15`, border: `1px solid ${color.accent}30` }}>
+                                <Briefcase className="w-5 h-5" style={{ color: color.accent }} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${color.badge}`}>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                                        {index === 0 ? 'Current Role' : 'Previous Role'}
+                                    </span>
+                                </div>
+                                <h3 className="font-display text-xl md:text-2xl font-bold text-white group-hover:text-indigo-300 transition-colors">
+                                    {exp.role}
+                                </h3>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <Award className="w-3.5 h-3.5 text-slate-500" />
+                                    <span className="text-sm font-semibold" style={{ color: color.accent }}>
+                                        {exp.company}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span className="font-code whitespace-nowrap">{exp.period}</span>
+                            </div>
+                            <button
+                                onClick={() => setExpanded(!expanded)}
+                                className="p-1.5 glass-light rounded-lg text-slate-400 hover:text-white transition-colors border border-slate-800"
+                            >
+                                {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Expandable points */}
+                    <AnimatePresence>
+                        {expanded && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                                className="overflow-hidden"
+                            >
+                                <div className="pt-2 border-t border-slate-800 mt-4">
+                                    <ul className="space-y-3 mt-4">
+                                        {exp.points.map((point, pIdx) => (
+                                            <motion.li
+                                                key={pIdx}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: pIdx * 0.1 }}
+                                                className="flex items-start gap-3 group/item"
+                                            >
+                                                <CheckCircle2
+                                                    className="w-4 h-4 flex-shrink-0 mt-0.5 transition-transform group-hover/item:scale-110"
+                                                    style={{ color: color.accent }}
+                                                />
+                                                <p className="text-slate-400 text-sm leading-relaxed group-hover/item:text-slate-300 transition-colors">
+                                                    {point}
+                                                </p>
+                                            </motion.li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
 
 const Experience = () => {
     return (
-        <section id="experience" className="py-24 bg-slate-50 relative overflow-hidden">
-            {/* Background decorative elements */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 -left-12 w-80 h-80 bg-blue-100/40 rounded-full blur-[100px]"></div>
-                <div className="absolute bottom-1/4 -right-12 w-[30rem] h-[30rem] bg-purple-100/30 rounded-full blur-[120px]"></div>
-            </div>
+        <section id="experience" className="py-28 section-darker relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 dot-pattern opacity-20" />
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-16"
+                    className="mb-20"
                 >
-                    <span className="inline-block px-4 py-1.5 mb-4 text-sm font-semibold tracking-wider text-blue-600 uppercase bg-blue-50 rounded-full">
-                        Professional Background
-                    </span>
-                    <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Work Experience</h2>
-                    <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
+                    <div className="section-line mb-3">
+                        <span className="font-code text-indigo-400/80 text-sm">experience.log</span>
+                    </div>
+                    <h2 className="font-display text-4xl md:text-5xl font-black text-white">
+                        Work <span className="gradient-text">Experience</span>
+                    </h2>
+                    <p className="text-slate-400 mt-4 max-w-xl">
+                        My professional journey — building impactful products and growing with every challenge.
+                    </p>
                 </motion.div>
 
-                {/* Experience Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                {/* Timeline */}
+                <div className="space-y-6">
                     {experiences.map((exp, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="group h-full"
-                        >
-                            <div className="relative h-full bg-white/70 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-blue-200/20 transition-all duration-500 overflow-hidden flex flex-col">
-                                {/* Subtle pattern overlay */}
-                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                                    <Briefcase size={120} />
-                                </div>
-
-                                {/* Top section: Badge + Icon */}
-                                <div className="flex items-start justify-between mb-8">
-                                    <div className={`p-4 rounded-2xl ${index === 0 ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
-                                        }`}>
-                                        <Briefcase className="w-6 h-6" />
-                                    </div>
-                                    <div className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase ${index === 0 ? 'bg-blue-100/50 text-blue-700' : 'bg-purple-100/50 text-purple-700'
-                                        }`}>
-                                        {index === 0 ? 'Current Role' : 'Previous Role'}
-                                    </div>
-                                </div>
-
-                                {/* Main Content */}
-                                <div className="flex-grow">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Calendar className="w-4 h-4 text-slate-400" />
-                                        <span className="text-sm font-semibold text-slate-500">{exp.period}</span>
-                                    </div>
-                                    <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 leading-tight group-hover:text-blue-600 transition-colors">
-                                        {exp.role}
-                                    </h3>
-                                    <p className="text-lg font-bold text-blue-600/80 mb-8 flex items-center">
-                                        <Award className="w-4 h-4 mr-2" />
-                                        {exp.company}
-                                    </p>
-
-                                    <ul className="space-y-4">
-                                        {exp.points.map((point, pIdx) => (
-                                            <li key={pIdx} className="flex items-start gap-4 group/item">
-                                                <div className={`mt-1.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-transform group-hover/item:scale-110 ${index === 0 ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
-                                                    }`}>
-                                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                                </div>
-                                                <p className="text-slate-600 leading-relaxed text-[0.95rem]">
-                                                    {point}
-                                                </p>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                {/* Bottom decorative border */}
-                                <div className={`absolute bottom-0 left-0 w-full h-1.5 transition-opacity duration-300 opacity-0 group-hover:opacity-100 ${index === 0 ? 'bg-gradient-to-r from-blue-500 to-cyan-400' : 'bg-gradient-to-r from-purple-500 to-pink-400'
-                                    }`}></div>
-                            </div>
-                        </motion.div>
+                        <ExperienceCard key={index} exp={exp} index={index} />
                     ))}
                 </div>
+
+                {/* Bottom CTA */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-16 text-center"
+                >
+                    <p className="text-slate-500 text-sm mb-4">Want to know more about my professional background?</p>
+                    <motion.a
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        href="/Komal_Kumari_Resume.pdf"
+                        download="Komal_Kumari_Resume.pdf"
+                        className="inline-flex items-center gap-2 px-6 py-3 glass-light text-indigo-400 font-semibold text-sm rounded-xl border border-indigo-500/20 hover:border-indigo-500/40 transition-all"
+                    >
+                        Download Full Resume
+                    </motion.a>
+                </motion.div>
             </div>
         </section>
     );

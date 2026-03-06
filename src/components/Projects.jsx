@@ -1,60 +1,90 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { projects } from '../data/projects';
 import ProjectCard from './ProjectCard';
 
-const Projects = () => {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-            },
-        },
-    };
+const FILTERS = ['All', 'React.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion'];
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.6,
-            },
-        },
-    };
+const Projects = () => {
+    const [activeFilter, setActiveFilter] = useState('All');
+
+    const filtered = activeFilter === 'All'
+        ? projects
+        : projects.filter(p => p.tech.includes(activeFilter));
 
     return (
-        <section id="projects" className="py-24 bg-slate-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="projects" className="py-28 section-dark relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 grid-pattern opacity-20" />
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+
+            {/* Glow orb */}
+            <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] opacity-5 pointer-events-none"
+                style={{ background: 'radial-gradient(circle, #06b6d4, transparent)' }} />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-16"
+                    className="mb-12"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Featured Projects</h2>
-                    <div className="w-20 h-1.5 bg-blue-600 mx-auto rounded-full mb-8"></div>
-                    <p className="max-w-2xl mx-auto text-slate-600">
-                        A selection of my most significant work, showcasing my skills in React, UI design, and problem-solving.
-                    </p>
+                    <div className="section-line mb-3">
+                        <span className="font-code text-cyan-400/80 text-sm">projects.showcase</span>
+                    </div>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h2 className="font-display text-4xl md:text-5xl font-black text-white">
+                                Featured <span className="gradient-text">Projects</span>
+                            </h2>
+                            <p className="text-slate-400 mt-3 max-w-xl">
+                                A curated selection of my most impactful work — from B2B dashboards to interactive UI systems.
+                            </p>
+                        </div>
+
+                        {/* Filter pills */}
+                        <div className="flex flex-wrap gap-2">
+                            {FILTERS.map((filter) => (
+                                <motion.button
+                                    key={filter}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setActiveFilter(filter)}
+                                    className={`px-4 py-1.5 font-code text-xs rounded-full border transition-all ${
+                                        activeFilter === filter
+                                            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                                            : 'glass-light text-slate-400 border-slate-700 hover:border-slate-500 hover:text-slate-200'
+                                    }`}
+                                >
+                                    {filter}
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
                 </motion.div>
 
+                {/* Projects Grid */}
                 <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: "-100px" }}
-                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    layout
+                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                    {projects.map((project, index) => (
-                        <motion.div key={index} variants={itemVariants}>
-                            <ProjectCard project={project} />
-                        </motion.div>
+                    {filtered.map((project, index) => (
+                        <ProjectCard key={project.title} project={project} index={index} />
                     ))}
                 </motion.div>
+
+                {filtered.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-20 text-slate-500"
+                    >
+                        No projects match this filter.
+                    </motion.div>
+                )}
             </div>
         </section>
     );

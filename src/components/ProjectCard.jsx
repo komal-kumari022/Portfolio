@@ -1,66 +1,106 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Github, ExternalLink } from 'lucide-react';
+import { Github, ExternalLink, Code2 } from 'lucide-react';
 
-const ProjectCard = ({ project }) => {
+const ProjectCard = ({ project, index }) => {
+    const [hovered, setHovered] = useState(false);
+
     return (
         <motion.div
-            layout
-            className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            onHoverStart={() => setHovered(true)}
+            onHoverEnd={() => setHovered(false)}
+            className="group glass-card rounded-3xl border border-slate-800 hover:border-indigo-500/30 overflow-hidden transition-all duration-500 hover-lift"
         >
-            {/* Project Image */}
-            <div className="relative h-64 overflow-hidden">
+            {/* Image */}
+            <div className="relative h-52 overflow-hidden">
                 <motion.img
                     src={project.image}
                     alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover"
+                    animate={{ scale: hovered ? 1.08 : 1 }}
+                    transition={{ duration: 0.6, ease: 'easeInOut' }}
+                    style={{ filter: 'brightness(0.6) saturate(0.7)' }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-8 p-4">
-                    <div className="flex gap-4">
-                        <motion.a
-                            href={project.github}
-                            initial={{ y: 20, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-blue-600 transition-all"
-                        >
-                            <Github size={20} />
-                        </motion.a>
-                        <motion.a
-                            href={project.link}
-                            initial={{ y: 20, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-blue-600 transition-all"
-                        >
-                            <ExternalLink size={20} />
-                        </motion.a>
-                    </div>
-                </div>
-            </div>
 
-            {/* Project Content */}
-            <div className="p-8">
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tech.map((tag, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent" />
+
+                {/* Hover actions */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 10 }}
+                    transition={{ duration: 0.3 }}
+                    className="absolute top-4 right-4 flex gap-2"
+                >
+                    <a
+                        href={project.github}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2.5 glass text-white hover:text-indigo-400 rounded-xl transition-colors border border-slate-700"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <Github size={16} />
+                    </a>
+                    <a
+                        href={project.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2.5 glass text-white hover:text-cyan-400 rounded-xl transition-colors border border-slate-700"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <ExternalLink size={16} />
+                    </a>
+                </motion.div>
+
+                {/* Tech tags on image bottom */}
+                <div className="absolute bottom-3 left-4 flex flex-wrap gap-1.5">
+                    {project.tech.slice(0, 3).map((tag) => (
+                        <span key={tag} className="px-2 py-0.5 font-code text-[10px] text-indigo-300 bg-indigo-500/20 border border-indigo-500/20 rounded-full backdrop-blur-sm">
                             {tag}
                         </span>
                     ))}
+                    {project.tech.length > 3 && (
+                        <span className="px-2 py-0.5 font-code text-[10px] text-slate-400 glass rounded-full border border-slate-700">
+                            +{project.tech.length - 3}
+                        </span>
+                    )}
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
-                    {project.title}
-                </h3>
-                <p className="text-slate-600 leading-relaxed mb-6 text-sm line-clamp-3">
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                    <h3 className="font-display text-lg font-bold text-white group-hover:text-indigo-300 transition-colors leading-tight">
+                        {project.title}
+                    </h3>
+                    <div className="p-1.5 text-slate-600 group-hover:text-indigo-500 transition-colors flex-shrink-0">
+                        <Code2 size={16} />
+                    </div>
+                </div>
+
+                <p className="text-slate-400 text-sm leading-relaxed line-clamp-2 mb-5">
                     {project.description}
                 </p>
 
-                <div className="flex items-center gap-4 text-sm font-bold pt-4 border-t border-slate-50">
-                    <a href={project.link} className="flex items-center text-blue-600 hover:gap-2 transition-all">
-                        Live Demo <ExternalLink size={14} className="ml-1" />
+                <div className="flex items-center gap-4 pt-4 border-t border-slate-800">
+                    <a
+                        href={project.link}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors group/link"
+                    >
+                        Live Demo
+                        <ExternalLink size={12} className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
                     </a>
-                    <a href={project.github} className="flex items-center text-slate-500 hover:text-slate-900 transition-all">
-                        GitHub <Github size={14} className="ml-1" />
+                    <span className="text-slate-700">•</span>
+                    <a
+                        href={project.github}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-white transition-colors group/gh"
+                    >
+                        <Github size={12} />
+                        Source Code
                     </a>
                 </div>
             </div>
